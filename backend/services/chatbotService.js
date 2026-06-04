@@ -21,6 +21,72 @@ Your personality:
 - Keep responses focused, accurate, and academic in tone
 - Use markdown formatting for better readability`;
 
+// Calculates when the Gemini free-tier quota resets (midnight US/Pacific)
+// and returns a friendly message with the exact time in IST (UTC+5:30)
+const getQuotaExhaustedMessage = (errorMsg = '') => {
+  try {
+    // Try to extract retryDelay seconds from the Gemini error response (per-minute quota)
+    const retryMatch = errorMsg.match(/"retryDelay":"(\d+)s"/);
+    const retrySeconds = retryMatch ? parseInt(retryMatch[1], 10) : null;
+
+    // Gemini free tier daily quota resets at midnight US/Pacific Time (UTC-7 in PDT, UTC-8 in PST)
+    const now = new Date();
+
+    // Determine current Pacific offset (PDT = UTC-7, PST = UTC-8)
+    // We approximate: PDT is Mar 2nd Sun → Nov 1st Sun; PST otherwise
+    const month = now.getUTCMonth(); // 0-indexed
+    const pacificOffsetHours = (month >= 2 && month <= 9) ? -7 : -8;
+
+    // Next midnight Pacific
+    const nowPacificMs = now.getTime() + pacificOffsetHours * 3600 * 1000;
+    const nowPacific = new Date(nowPacificMs);
+    const nextMidnightPacific = new Date(nowPacific);
+    nextMidnightPacific.setUTCHours(24 - pacificOffsetHours, 0, 0, 0); // midnight Pacific in UTC
+
+    // Convert to IST (UTC+5:30)
+    const nextMidnightIST = new Date(nextMidnightPacific.getTime() + (5.5 * 3600 * 1000));
+    const istTime = nextMidnightIST.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+
+    // Time remaining
+    const msLeft = nextMidnightPacific.getTime() - now.getTime();
+    const hoursLeft = Math.floor(msLeft / 3600000);
+    const minutesLeft = Math.floor((msLeft % 3600000) / 60000);
+    const timeLeftStr = hoursLeft > 0
+      ? `${hoursLeft}h ${minutesLeft}m`
+      : `${minutesLeft} minutes`;
+
+    // Per-minute rate limit (short wait) vs daily quota (long wait)
+    if (retrySeconds && retrySeconds < 120) {
+      const waitSec = retrySeconds + 5;
+      return `⏳ **Rate limit reached** — too many requests in a short time.\n\nPlease wait **${waitSec} seconds** and try again. The AI will be ready shortly!`;
+    }
+
+    return `📊 **Daily AI quota reached**
+
+The free Gemini AI quota resets every day at **midnight US Pacific Time**.
+
+⏰ **Quota renews at:** ${istTime} IST
+⌛ **Time remaining:** ~${timeLeftStr}
+
+Until then, you can:
+- Browse uploaded notes in the **Notes Repository**
+- Post questions in the **Doubt Forum** for peer help
+- Use the **Collaborative Whiteboard** for study sessions
+
+The AI will be fully available again after renewal! 🚀`;
+  } catch (_) {
+    return `📊 **Daily AI quota reached**\n\nThe free Gemini AI quota resets every day at **midnight US Pacific Time** (approximately **1:30 PM IST**).\n\nPlease try again after the reset. In the meantime, use the Notes Repository or Doubt Forum!`;
+  }
+};
+
 export const generateResponse = async (userMessage, noteContext = null, history = []) => {
   try {
     if (!process.env.GEMINI_API_KEY) {
@@ -64,7 +130,7 @@ My question about this document: ${userMessage}`;
       return '⚠️ The Gemini API key is invalid. Please check your environment configuration.';
     }
     if (err.message?.includes('quota') || err.message?.includes('RESOURCE_EXHAUSTED')) {
-      return '⚠️ The AI service is temporarily rate-limited. Please wait a moment and try again.';
+      return getQuotaExhaustedMessage(err.message);
     }
     return '⚠️ I encountered an issue reaching the AI service. Please try again shortly.';
   }
