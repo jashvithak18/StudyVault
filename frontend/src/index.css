@@ -1616,13 +1616,35 @@ select {
   /* Authentication Split Pane Override */
   .auth-page {
     flex-direction: column;
+    min-height: auto;
   }
   .auth-left-pane {
-    display: none !important;
+    display: flex !important;
+    flex: none !important;
+    padding: 32px 20px !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-color);
+    align-items: center !important;
+    text-align: center !important;
+  }
+  .auth-left-pane svg {
+    max-width: 220px;
+    height: auto;
+    margin: 16px 0 !important;
+  }
+  .auth-left-pane h1 {
+    font-size: 1.6rem !important;
+    text-align: center !important;
+    line-height: 1.2 !important;
+  }
+  .auth-left-pane p {
+    font-size: 0.875rem !important;
+    text-align: center !important;
+    margin-bottom: 20px !important;
   }
   .auth-right-pane {
     flex: 1;
-    padding: 24px;
+    padding: 32px 20px !important;
     align-items: center;
   }
   .auth-card {

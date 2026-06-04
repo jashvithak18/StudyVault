@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, Download, Calendar, Tag, ChevronUp, ChevronDown, User, Sparkles } from 'lucide-react';
+import { FileText, Download, Calendar, Tag, ChevronUp, ChevronDown, User, Sparkles, Eye } from 'lucide-react';
 import { formatBytes, formatDate } from '../utils/helpers';
 import { useAuth } from '../context/AuthContext';
 
@@ -138,12 +138,15 @@ const NoteCard = ({ note, onDownload, onViewSummary, onVote }) => {
         </div>
 
         {/* Action buttons */}
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }} onClick={() => onViewSummary(note)}>
-            <Sparkles size={13} style={{ color: 'var(--accent-warning)' }} /> AI Summary
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '0.775rem', display: 'flex', alignItems: 'center', gap: '3px' }} onClick={() => onViewSummary(note)} title="AI Summary">
+            <Sparkles size={12} style={{ color: 'var(--accent-warning)' }} />
           </button>
-          <button className="btn btn-primary" style={{ padding: '6px 12px', fontSize: '0.8rem' }} onClick={() => onDownload(note)}>
-            <Download size={13} />
+          <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '0.775rem', display: 'flex', alignItems: 'center', gap: '3px' }} onClick={() => window.open(note.filepath, '_blank')} title="View Note online">
+            <Eye size={12} /> View
+          </button>
+          <button className="btn btn-primary" style={{ padding: '6px 10px', fontSize: '0.775rem', display: 'flex', alignItems: 'center', gap: '3px' }} onClick={() => onDownload(note)} title="Download Note">
+            <Download size={12} />
           </button>
         </div>
       </div>
