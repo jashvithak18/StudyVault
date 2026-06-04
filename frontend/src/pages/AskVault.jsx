@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 import { Send, Bot, User, Sparkles, HelpCircle } from 'lucide-react';
 
 const AskVault = () => {
+  const { user } = useAuth();
   const [notes, setNotes] = useState([]);
   const [selectedNoteId, setSelectedNoteId] = useState('');
   const [messages, setMessages] = useState([

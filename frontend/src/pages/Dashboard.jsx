@@ -9,6 +9,7 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({ notesCount: 0, doubtsCount: 0, whiteboardsCount: 0 });
   const [recentNotes, setRecentNotes] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,6 +33,35 @@ const Dashboard = () => {
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
           .slice(0, 3);
         setRecentNotes(sortedNotes);
+
+        // Build live activity feed from recent notes and doubts
+        const noteActivities = allNotes
+          .slice()
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 4)
+          .map((n) => ({
+            user: n.user ? `${n.user.firstName || ''} ${n.user.lastName || ''}`.trim() || 'A student' : 'A student',
+            action: 'uploaded notes',
+            target: n.title || 'Untitled Note',
+            time: n.createdAt
+          }));
+
+        const doubtActivities = allDoubts
+          .slice()
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 3)
+          .map((d) => ({
+            user: d.user ? `${d.user.firstName || ''} ${d.user.lastName || ''}`.trim() || 'A student' : 'A student',
+            action: 'posted a doubt',
+            target: d.title || 'Untitled Question',
+            time: d.createdAt
+          }));
+
+        const combined = [...noteActivities, ...doubtActivities]
+          .sort((a, b) => new Date(b.time) - new Date(a.time))
+          .slice(0, 6);
+
+        setRecentActivity(combined);
       } catch (err) {
         console.error('Error fetching dashboard stats', err);
       } finally {
@@ -55,12 +85,15 @@ const Dashboard = () => {
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  const mockActivities = [
-    { user: 'Jashvi Thakkar', action: 'uploaded DSA Notes', target: 'Trees & Graphs', time: '10m ago' },
-    { user: 'Anurag Sen', action: 'solved a Math doubt', target: 'Integration help', time: '45m ago' },
-    { user: 'Mehul Mehta', action: 'started collaborative whiteboard', target: 'Compiler Design', time: '2h ago' },
-    { user: 'Rohan Shah', action: 'uploaded Chemistry Notes', target: 'Organic reaction mechanisms', time: '5h ago' }
-  ];
+  const formatRelative = (dateStr) => {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.floor(hours / 24)}d ago`;
+  };
 
   return (
     <div className="dashboard-page page-container">
@@ -132,24 +165,31 @@ const Dashboard = () => {
         <div className="dashboard-section-card">
           <h2>Recent Academic Activity</h2>
           <div className="recent-list">
-            {mockActivities.map((act, i) => (
-              <div key={i} className="recent-item">
-                <div className="recent-item-meta">
-                  <span className="recent-item-title" style={{ fontWeight: 500 }}>
-                    <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{act.user}</strong>{' '}
-                    <span style={{ color: 'var(--text-secondary)' }}>{act.action}</span>{' '}
-                    <span style={{ color: 'var(--accent-secondary)', fontWeight: 500 }}>"{act.target}"</span>
-                  </span>
-                  <span className="recent-item-subtitle" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                    <Clock size={12} />
-                    {act.time}
-                  </span>
+            {recentActivity.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', padding: '20px 0' }}>
+                No recent activity yet.
+              </p>
+            ) : (
+              recentActivity.map((act, i) => (
+                <div key={i} className="recent-item">
+                  <div className="recent-item-meta">
+                    <span className="recent-item-title" style={{ fontWeight: 500 }}>
+                      <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{act.user}</strong>{' '}
+                      <span style={{ color: 'var(--text-secondary)' }}>{act.action}</span>{' '}
+                      <span style={{ color: 'var(--accent-secondary)', fontWeight: 500 }}>"{act.target}"</span>
+                    </span>
+                    <span className="recent-item-subtitle" style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                      <Clock size={12} />
+                      {formatRelative(act.time)}
+                    </span>
+                  </div>
+                  <ChevronRight size={16} style={{ color: 'var(--text-muted)' }} />
                 </div>
-                <ChevronRight size={16} style={{ color: 'var(--text-muted)' }} />
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
+
       </div>
     </div>
   );
