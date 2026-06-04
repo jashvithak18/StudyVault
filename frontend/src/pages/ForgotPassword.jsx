@@ -95,7 +95,7 @@ const ForgotPassword = () => {
                 type="email"
                 placeholder="e.g. name@student.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value.toLowerCase())}
                 required
               />
             </div>
