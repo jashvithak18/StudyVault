@@ -43,9 +43,8 @@ const getQuotaExhaustedMessage = (errorMsg = '') => {
     const nextMidnightPacific = new Date(nowPacific);
     nextMidnightPacific.setUTCHours(24 - pacificOffsetHours, 0, 0, 0); // midnight Pacific in UTC
 
-    // Convert to IST (UTC+5:30)
-    const nextMidnightIST = new Date(nextMidnightPacific.getTime() + (5.5 * 3600 * 1000));
-    const istTime = nextMidnightIST.toLocaleString('en-IN', {
+    // Format in IST using toLocaleString (it handles the +5:30 offset automatically)
+    const istTime = nextMidnightPacific.toLocaleString('en-IN', {
       timeZone: 'Asia/Kolkata',
       weekday: 'short',
       day: 'numeric',
