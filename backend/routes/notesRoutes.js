@@ -3,6 +3,7 @@ import { NoteModel } from '../models/Note.js';
 import { verifyToken } from '../middlewares/authMiddleware.js';
 import { generateSummary } from '../services/summaryService.js';
 import upload from '../middlewares/uploadMiddleware.js';
+import axios from 'axios';
 export const notesRoutes = exp.Router();
 // upload a new study note
 notesRoutes.post('/upload', verifyToken, upload.single('note'), async (req, res, next) => {
@@ -18,7 +19,7 @@ notesRoutes.post('/upload', verifyToken, upload.single('note'), async (req, res,
       topic,
       subject: subject || 'General',
       semester: semester || 'Semester 1',
-      filename: req.file.filename,
+      filename: req.file.originalname || req.file.filename,
       filepath: req.file.path,
       size: req.file.size,
       mimeType: req.file.mimetype,
@@ -74,7 +75,23 @@ notesRoutes.get('/download/:id', async (req, res, next) => {
     if (!note) {
       return res.status(404).json({ message: "Note not found" });
     }
-    res.redirect(note.filepath);
+    
+    // If the file is stored remotely, stream it to preserve headers and original name
+    if (note.filepath.startsWith('http')) {
+      const response = await axios({
+        method: 'get',
+        url: note.filepath,
+        responseType: 'stream'
+      });
+      
+      const filename = note.filename || `note-${note._id}.pdf`;
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+      res.setHeader('Content-Type', note.mimeType || 'application/octet-stream');
+      
+      response.data.pipe(res);
+    } else {
+      res.download(note.filepath, note.filename);
+    }
   } catch (err) {
     next(err);
   }

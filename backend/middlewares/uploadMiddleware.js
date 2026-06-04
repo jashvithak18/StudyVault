@@ -13,11 +13,22 @@ const storage = new CloudinaryStorage({
   params: async (req, file) => {
     const ext = file.originalname.split('.').pop().toLowerCase();
     const isRaw = ['txt', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext);
-    return {
-      folder: 'studyvault/notes',
-      resource_type: isRaw ? 'raw' : 'auto',
-      public_id: file.originalname.replace(/\.[^/.]+$/, "") + '-' + Date.now(),
-    };
+    const cleanName = file.originalname.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9]/g, "_");
+    
+    if (isRaw) {
+      return {
+        folder: 'studyvault/notes',
+        resource_type: 'raw',
+        public_id: `${cleanName}-${Date.now()}.${ext}`,
+      };
+    } else {
+      return {
+        folder: 'studyvault/notes',
+        resource_type: 'auto',
+        format: ext,
+        public_id: `${cleanName}-${Date.now()}`,
+      };
+    }
   },
 });
 export const upload = multer({
