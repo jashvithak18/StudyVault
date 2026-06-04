@@ -16,6 +16,19 @@ const NoteCard = ({ note, onDownload, onViewSummary, onVote }) => {
   const hasUpvoted = note.upvotes?.includes(currentUserId);
   const hasDownvoted = note.downvotes?.includes(currentUserId);
 
+  const handleViewOnline = () => {
+    if (!note.filepath) return;
+    const filename = note.filename || note.filepath;
+    const ext = filename.split('.').pop().toLowerCase();
+    const isOfficeDoc = ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext);
+    
+    if (isOfficeDoc) {
+      window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(note.filepath)}`, '_blank');
+    } else {
+      window.open(note.filepath, '_blank');
+    }
+  };
+
   return (
     <div className="note-card">
       {/* Badge Row */}
@@ -142,7 +155,7 @@ const NoteCard = ({ note, onDownload, onViewSummary, onVote }) => {
           <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '0.775rem', display: 'flex', alignItems: 'center', gap: '3px' }} onClick={() => onViewSummary(note)} title="AI Summary">
             <Sparkles size={12} style={{ color: 'var(--accent-warning)' }} />
           </button>
-          <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '0.775rem', display: 'flex', alignItems: 'center', gap: '3px' }} onClick={() => window.open(note.filepath, '_blank')} title="View Note online">
+          <button className="btn btn-secondary" style={{ padding: '6px 10px', fontSize: '0.775rem', display: 'flex', alignItems: 'center', gap: '3px' }} onClick={handleViewOnline} title="View Note online">
             <Eye size={12} /> View
           </button>
           <button className="btn btn-primary" style={{ padding: '6px 10px', fontSize: '0.775rem', display: 'flex', alignItems: 'center', gap: '3px' }} onClick={() => onDownload(note)} title="Download Note">

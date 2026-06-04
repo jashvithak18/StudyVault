@@ -10,9 +10,14 @@ cloudinary.config({
 });
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: {
-    folder: 'studyvault/notes',
-    resource_type: 'raw', // required for .txt and raw .pdf files
+  params: async (req, file) => {
+    const ext = file.originalname.split('.').pop().toLowerCase();
+    const isRaw = ['txt', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(ext);
+    return {
+      folder: 'studyvault/notes',
+      resource_type: isRaw ? 'raw' : 'auto',
+      public_id: file.originalname.replace(/\.[^/.]+$/, "") + '-' + Date.now(),
+    };
   },
 });
 export const upload = multer({
