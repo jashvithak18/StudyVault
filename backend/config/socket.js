@@ -2,9 +2,24 @@ import { Server } from 'socket.io'
 import { addUserToRoom, removeUserFromRoom, getRoomUsers, addStrokeToRoom, getRoomStrokes, clearRoomStrokes } from '../services/whiteboardService.js'
 let io
 export const initSocket = (server) => {
+  const allowedOrigins = [
+    'http://localhost:5173',
+    process.env.CLIENT_URL
+  ].filter(Boolean);
+
   io = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL || 'http://localhost:5173',
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        const isAllowed = allowedOrigins.includes(origin) || 
+                          origin.endsWith('.vercel.app') || 
+                          origin.endsWith('.onrender.com');
+        if (isAllowed) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
       methods: ['GET', 'POST'],
       credentials: true
     }
