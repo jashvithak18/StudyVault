@@ -4,6 +4,7 @@ import { verifyToken } from '../middlewares/authMiddleware.js';
 import { generateSummary } from '../services/summaryService.js';
 import upload from '../middlewares/uploadMiddleware.js';
 import axios from 'axios';
+import path from 'path';
 export const notesRoutes = exp.Router();
 // upload a new study note
 notesRoutes.post('/upload', verifyToken, upload.single('note'), async (req, res, next) => {
@@ -91,6 +92,50 @@ notesRoutes.get('/download/:id', async (req, res, next) => {
       response.data.pipe(res);
     } else {
       res.download(note.filepath, note.filename);
+    }
+  } catch (err) {
+    next(err);
+  }
+});
+
+// view the note inline in the browser (handles PDFs, text files, and images)
+notesRoutes.get('/view/:id', async (req, res, next) => {
+  try {
+    const note = await NoteModel.findById(req.params.id);
+    if (!note) {
+      return res.status(404).json({ message: "Note not found" });
+    }
+    
+    // Determine the content type and filename
+    const filename = note.filename || `note-${note._id}.pdf`;
+    const ext = filename.split('.').pop().toLowerCase();
+    
+    let mimeType = note.mimeType || 'application/pdf';
+    if (ext === 'pdf') {
+      mimeType = 'application/pdf';
+    } else if (ext === 'txt') {
+      mimeType = 'text/plain';
+    } else if (ext === 'png') {
+      mimeType = 'image/png';
+    } else if (ext === 'jpg' || ext === 'jpeg') {
+      mimeType = 'image/jpeg';
+    }
+
+    if (note.filepath.startsWith('http')) {
+      const response = await axios({
+        method: 'get',
+        url: note.filepath,
+        responseType: 'stream'
+      });
+      
+      res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(filename)}"`);
+      res.setHeader('Content-Type', mimeType);
+      
+      response.data.pipe(res);
+    } else {
+      res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(filename)}"`);
+      res.setHeader('Content-Type', mimeType);
+      res.sendFile(path.resolve(note.filepath));
     }
   } catch (err) {
     next(err);

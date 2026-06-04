@@ -2,6 +2,7 @@ import React from 'react';
 import { FileText, Download, Calendar, Tag, ChevronUp, ChevronDown, User, Sparkles, Eye } from 'lucide-react';
 import { formatBytes, formatDate } from '../utils/helpers';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../utils/constants';
 
 const NoteCard = ({ note, onDownload, onViewSummary, onVote }) => {
   const { user } = useAuth();
@@ -25,7 +26,7 @@ const NoteCard = ({ note, onDownload, onViewSummary, onVote }) => {
     if (isOfficeDoc) {
       window.open(`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(note.filepath)}`, '_blank');
     } else {
-      window.open(note.filepath, '_blank');
+      window.open(`${API_BASE_URL}/user-api/notes/view/${note._id}`, '_blank');
     }
   };
 
