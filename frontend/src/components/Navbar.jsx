@@ -35,7 +35,7 @@ const Navbar = ({ onToggleSidebar }) => {
             }}>
               <User size={16} />
             </div>
-            <span className="user-name">{user.firstName ? `${user.firstName} ${user.lastName}` : user.name || 'Student'}</span>
+            <span className="user-name">{user.firstName ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : user.name || 'Student'}</span>
             <button className="logout-button" onClick={logout} title="Log Out">
               <LogOut size={16} />
             </button>

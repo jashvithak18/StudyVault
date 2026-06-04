@@ -111,16 +111,25 @@ const UploadNotes = () => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="subject">Subject</label>
-                <select id="subject" value={subject} onChange={(e) => setSubject(e.target.value)}>
-                  <option value="DSA">DSA</option>
-                  <option value="Math">Math</option>
-                  <option value="Physics">Physics</option>
-                  <option value="Chemistry">Chemistry</option>
-                  <option value="Computer Networks">Computer Networks</option>
-                  <option value="Operating Systems">Operating Systems</option>
-                  <option value="General">General</option>
-                </select>
+                <label htmlFor="subject">Subject Name</label>
+                <input
+                  id="subject"
+                  type="text"
+                  list="subject-suggestions"
+                  placeholder="e.g. DSA, Operating Systems"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  required
+                />
+                <datalist id="subject-suggestions">
+                  <option value="DSA" />
+                  <option value="Math" />
+                  <option value="Physics" />
+                  <option value="Chemistry" />
+                  <option value="Computer Networks" />
+                  <option value="Operating Systems" />
+                  <option value="General" />
+                </datalist>
               </div>
             </div>
 

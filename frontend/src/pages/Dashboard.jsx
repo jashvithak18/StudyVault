@@ -18,10 +18,12 @@ const Dashboard = () => {
         const forumRes = await api.get('/user-api/forum/questions');
         
         // Save stats
-        const allNotes = notesRes.data || [];
+        const allNotes = Array.isArray(notesRes.data?.payload) ? notesRes.data.payload : Array.isArray(notesRes.data) ? notesRes.data : [];
+        const allDoubts = Array.isArray(forumRes.data?.payload) ? forumRes.data.payload : Array.isArray(forumRes.data) ? forumRes.data : [];
+        
         setStats({
           notesCount: allNotes.length,
-          doubtsCount: forumRes.data?.length || 0,
+          doubtsCount: allDoubts.length,
           whiteboardsCount: 3, // Live Active rooms count
         });
 

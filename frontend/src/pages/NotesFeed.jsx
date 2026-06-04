@@ -19,7 +19,7 @@ const NotesFeed = () => {
   const fetchNotes = async () => {
     try {
       const res = await api.get('/user-api/notes');
-      setNotes(res.data);
+      setNotes(Array.isArray(res.data?.payload) ? res.data.payload : Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error('Failed to load notes', err);
     } finally {

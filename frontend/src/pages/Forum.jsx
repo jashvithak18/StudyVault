@@ -18,7 +18,7 @@ const Forum = () => {
   const fetchQuestions = async () => {
     try {
       const res = await api.get('/user-api/forum/questions');
-      setQuestions(res.data.payload || res.data || []);
+      setQuestions(Array.isArray(res.data?.payload) ? res.data.payload : Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error('Failed to load forum questions', err);
     } finally {
@@ -53,7 +53,7 @@ const Forum = () => {
     setAnswers([]);
     try {
       const res = await api.get(`/user-api/forum/questions/${question._id}/answers`);
-      setAnswers(res.data.payload || res.data || []);
+      setAnswers(Array.isArray(res.data?.payload) ? res.data.payload : Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error('Failed to load answers', err);
     }
@@ -81,13 +81,11 @@ const Forum = () => {
     }
   };
 
-  // Helper to extract initials
   const getInitials = (userObj) => {
     if (!userObj) return 'S';
-    if (userObj.firstName) {
-      return `${userObj.firstName[0]}${userObj.lastName ? userObj.lastName[0] : ''}`.toUpperCase();
-    }
-    return (userObj.name || 'S').substring(0, 2).toUpperCase();
+    const first = userObj.firstName?.[0] || userObj.name?.[0] || '';
+    const last = userObj.lastName?.[0] || '';
+    return `${first}${last}`.toUpperCase() || 'S';
   };
 
   return (
