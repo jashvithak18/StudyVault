@@ -3,10 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import { BookOpen, HelpCircle, Edit3, ArrowRight, Clock, User, ChevronRight } from 'lucide-react';
 import Loader from '../components/Loader';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({ notesCount: 0, doubtsCount: 0, whiteboardsCount: 0 });
   const [recentNotes, setRecentNotes] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
@@ -43,7 +44,8 @@ const Dashboard = () => {
             user: n.user ? `${n.user.firstName || ''} ${n.user.lastName || ''}`.trim() || 'A student' : 'A student',
             action: 'uploaded notes',
             target: n.title || 'Untitled Note',
-            time: n.createdAt
+            time: n.createdAt,
+            link: '/notes'
           }));
 
         const doubtActivities = allDoubts
@@ -54,7 +56,8 @@ const Dashboard = () => {
             user: d.user ? `${d.user.firstName || ''} ${d.user.lastName || ''}`.trim() || 'A student' : 'A student',
             action: 'posted a doubt',
             target: d.title || 'Untitled Question',
-            time: d.createdAt
+            time: d.createdAt,
+            link: '/forum'
           }));
 
         const combined = [...noteActivities, ...doubtActivities]
@@ -163,7 +166,9 @@ const Dashboard = () => {
 
         {/* Recent Activity Section */}
         <div className="dashboard-section-card">
-          <h2>Recent Academic Activity</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2>Recent Academic Activity</h2>
+          </div>
           <div className="recent-list">
             {recentActivity.length === 0 ? (
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', padding: '20px 0' }}>
@@ -171,7 +176,12 @@ const Dashboard = () => {
               </p>
             ) : (
               recentActivity.map((act, i) => (
-                <div key={i} className="recent-item">
+                <div
+                  key={i}
+                  className="recent-item"
+                  onClick={() => navigate(act.link)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <div className="recent-item-meta">
                     <span className="recent-item-title" style={{ fontWeight: 500 }}>
                       <strong style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{act.user}</strong>{' '}
@@ -183,7 +193,7 @@ const Dashboard = () => {
                       {formatRelative(act.time)}
                     </span>
                   </div>
-                  <ChevronRight size={16} style={{ color: 'var(--text-muted)' }} />
+                  <ChevronRight size={16} style={{ color: 'var(--accent-primary)' }} />
                 </div>
               ))
             )}

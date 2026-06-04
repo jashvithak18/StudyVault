@@ -98,17 +98,21 @@ export const generateResponse = async (userMessage, noteContext = null, history 
       systemInstruction: SYSTEM_PROMPT,
     });
 
-    // Convert history array [{sender, text}] to Gemini format [{role, parts}]
-    const geminiHistory = history
-      .filter(m => m.sender !== 'bot' || history.indexOf(m) > 0) // skip the initial greeting
-      .map(m => ({
-        role: m.sender === 'bot' ? 'model' : 'user',
-        parts: [{ text: m.text }],
-      }));
+    // Build Gemini history from past turns (exclude the current message — it's sent via sendMessage).
+    // Gemini requires strict alternating user → model pairs.
+    // Skip index 0 (the initial bot greeting with no preceding user message).
+    const pastMessages = history.slice(0, -1); // exclude the last message (current user msg)
+    const geminiHistory = [];
+    for (let i = 1; i < pastMessages.length - 1; i += 2) {
+      const userMsg = pastMessages[i];
+      const botMsg = pastMessages[i + 1];
+      if (userMsg && userMsg.sender === 'user' && botMsg && botMsg.sender === 'bot') {
+        geminiHistory.push({ role: 'user', parts: [{ text: userMsg.text }] });
+        geminiHistory.push({ role: 'model', parts: [{ text: botMsg.text }] });
+      }
+    }
 
-    const chat = model.startChat({
-      history: geminiHistory,
-    });
+    const chat = model.startChat({ history: geminiHistory });
 
     let prompt = userMessage;
 

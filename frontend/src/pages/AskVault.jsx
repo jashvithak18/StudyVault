@@ -207,24 +207,8 @@ const AskVault = () => {
         }}>
           <h2 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>Study Context</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.73rem', lineHeight: 1.4, marginBottom: '8px' }}>
-            Select a note to focus AI on it, or use Global for general questions.
+            Select a note to focus the AI on it. Leave unselected for general questions.
           </p>
-
-          <button
-            onClick={() => setSelectedNoteId('')}
-            style={{
-              textAlign: 'left',
-              padding: '10px 12px',
-              backgroundColor: !selectedNoteId ? 'var(--accent-primary-glow)' : 'transparent',
-              border: '1px solid',
-              borderColor: !selectedNoteId ? 'var(--accent-primary)' : 'var(--border-color)',
-              borderRadius: '6px',
-              cursor: 'pointer',
-            }}
-          >
-            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: !selectedNoteId ? 'var(--accent-primary)' : 'var(--text-primary)' }}>🌐 Global Vault</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>All uploaded materials</div>
-          </button>
 
           {notesLoading ? (
             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', padding: '8px 0' }}>Loading notes...</div>
@@ -234,7 +218,7 @@ const AskVault = () => {
             notes.map((note) => (
               <button
                 key={note._id}
-                onClick={() => setSelectedNoteId(note._id)}
+                onClick={() => setSelectedNoteId(selectedNoteId === note._id ? '' : note._id)}
                 style={{
                   textAlign: 'left',
                   padding: '10px 12px',
@@ -257,7 +241,7 @@ const AskVault = () => {
                   📄 {note.title}
                 </div>
                 <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                  {note.subject || 'General'}
+                  {note.subject || 'General'} {selectedNoteId === note._id ? '· active' : ''}
                 </div>
               </button>
             ))
