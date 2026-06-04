@@ -1,12 +1,21 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Bell, User } from 'lucide-react';
+import { LogOut, Bell, User, Menu } from 'lucide-react';
 
-const Navbar = () => {
+const Navbar = ({ onToggleSidebar }) => {
   const { user, logout } = useAuth();
 
   return (
     <header className="navbar">
+      <button 
+        className="icon-button mobile-toggle-btn" 
+        onClick={onToggleSidebar}
+        aria-label="Toggle navigation"
+        style={{ display: 'none' }}
+      >
+        <Menu size={22} />
+      </button>
+
       <div className="navbar-right">
         <button className="icon-button" aria-label="Notifications" style={{ marginRight: '8px' }}>
           <Bell size={20} />

@@ -106,7 +106,7 @@ const Forum = () => {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '24px', height: 'calc(100vh - 180px)', minHeight: '500px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '24px', height: 'calc(100vh - 180px)', minHeight: '500px' }} className={`forum-grid ${selectedQuestion ? 'has-selection' : ''}`}>
         {/* Left Side: Question List or Ask Form */}
         <div style={{
           display: 'flex',
@@ -114,7 +114,7 @@ const Forum = () => {
           overflowY: 'auto',
           borderRight: '1px solid var(--border-color)',
           paddingRight: '16px'
-        }}>
+        }} className="forum-left-pane">
           {showAskForm ? (
             <div className="upload-form-container" style={{ padding: '24px' }}>
               <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '20px', fontFamily: 'var(--font-title)' }}>Ask Your Doubt</h2>
@@ -244,7 +244,7 @@ const Forum = () => {
         </div>
 
         {/* Right Side: Question Details & Answers */}
-        <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto' }} className="forum-right-pane">
           {selectedQuestion ? (
             <div style={{
               backgroundColor: 'var(--bg-secondary)',
@@ -256,6 +256,13 @@ const Forum = () => {
               gap: '20px',
               minHeight: '100%'
             }}>
+              <button 
+                onClick={() => setSelectedQuestion(null)}
+                className="btn btn-secondary mobile-back-btn"
+                style={{ display: 'none', alignSelf: 'flex-start', marginBottom: '16px', padding: '6px 12px' }}
+              >
+                ← Back to Doubts
+              </button>
               <div>
                 <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-title)' }}>
                   {selectedQuestion.title}

@@ -1610,3 +1610,108 @@ select {
   align-items: center;
   justify-content: center;
 }
+
+/* Mobile Responsiveness Rules */
+@media (max-width: 768px) {
+  /* Authentication Split Pane Override */
+  .auth-page {
+    flex-direction: column;
+  }
+  .auth-left-pane {
+    display: none !important;
+  }
+  .auth-right-pane {
+    flex: 1;
+    padding: 24px;
+    align-items: center;
+  }
+  .auth-card {
+    max-width: 100%;
+    box-shadow: none;
+    border: none;
+  }
+
+  /* Main Layout & Sidebar Collapsible Drawer */
+  .main-layout {
+    position: relative;
+  }
+  
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -260px;
+    height: 100vh;
+    z-index: 1000;
+    transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .sidebar.mobile-open {
+    left: 0;
+  }
+
+  .sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(15, 23, 42, 0.4);
+    z-index: 999;
+  }
+
+  .content-area {
+    padding: 16px;
+  }
+
+  .navbar {
+    padding: 0 16px;
+    justify-content: space-between; /* To show hamburger on left, actions on right */
+  }
+
+  .mobile-toggle-btn {
+    display: flex !important; /* Show hamburger button on mobile */
+  }
+
+  /* Dashboard Adjustments */
+  .dashboard-grid-sections {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .welcome-banner {
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  /* Upload Notes Split Pane Override */
+  .upload-split-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .upload-split-layout > div:last-child {
+    display: none; /* Hide illustrative guideline card on mobile to save space */
+  }
+
+  /* Notes Feed search and filters */
+  .feed-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .search-bar-container {
+    width: 100% !important;
+  }
+
+  /* Forum list/detail split pane */
+  .forum-grid {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+  }
+}
+
