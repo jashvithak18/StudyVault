@@ -13,6 +13,14 @@ const noteSchema = new Schema({
     required: [true, "Topic category is required (e.g. notes, pdfs, past-papers)"],
     enum: ['notes', 'pdfs', 'past-papers']
   },
+  subject: {
+    type: String,
+    default: 'General'
+  },
+  semester: {
+    type: String,
+    default: 'Semester 1'
+  },
   filename: {
     type: String,
     required: true

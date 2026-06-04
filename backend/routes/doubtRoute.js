@@ -9,8 +9,17 @@ doubtRoute.get('/questions', verifyToken, async (req, res, next) => {
     const questions = await QuestionModel.find()
       .populate('user', 'firstName lastName')
       .populate('comments.user', 'firstName lastName')
-      .sort({ createdAt: -1 });
-    res.status(200).json({ message: "Questions retrieved", payload: questions });
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const questionsWithAnswerCount = await Promise.all(
+      questions.map(async (q) => {
+        const answersCount = await AnswerModel.countDocuments({ question: q._id });
+        return { ...q, answersCount };
+      })
+    );
+
+    res.status(200).json({ message: "Questions retrieved", payload: questionsWithAnswerCount });
   } catch (err) {
     next(err);
   }

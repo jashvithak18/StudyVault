@@ -12,12 +12,14 @@ const AppLayout = () => {
 
   return (
     <div className={`app-container ${user ? 'authenticated' : 'unauthenticated'}`}>
-      {user && <Navbar />}
-      <div className="main-layout">
+      <div className="main-layout" style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         {user && <Sidebar />}
-        <main className="content-area">
-          <AppRoutes />
-        </main>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {user && <Navbar />}
+          <main className="content-area">
+            <AppRoutes />
+          </main>
+        </div>
       </div>
       {user && <Chatbot />}
     </div>

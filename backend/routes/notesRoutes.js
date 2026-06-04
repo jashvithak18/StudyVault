@@ -7,7 +7,7 @@ export const notesRoutes = exp.Router();
 // upload a new study note
 notesRoutes.post('/upload', verifyToken, upload.single('note'), async (req, res, next) => {
   try {
-    const { title, description, topic } = req.body;
+    const { title, description, topic, subject, semester } = req.body;
     if (!req.file) {
       return res.status(400).json({ message: "Please upload a file" });
     }
@@ -16,6 +16,8 @@ notesRoutes.post('/upload', verifyToken, upload.single('note'), async (req, res,
       title,
       description,
       topic,
+      subject: subject || 'General',
+      semester: semester || 'Semester 1',
       filename: req.file.filename,
       filepath: req.file.path,
       size: req.file.size,
