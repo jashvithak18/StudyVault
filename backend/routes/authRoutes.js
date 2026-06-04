@@ -8,12 +8,13 @@ export const authRoutes = exp.Router();
 authRoutes.post('/users', async (req, res, next) => {
   try {
     const { firstName, lastName, email, password, role, profileImageUrl } = req.body;
+    const normalizedEmail = email ? email.toLowerCase().trim() : '';
     
-    const userExists = await UserModel.findOne({ email });
+    const userExists = await UserModel.findOne({ email: normalizedEmail });
     if (userExists) {
       return res.status(409).json({ message: "User already exists" });
     }
-    const newUser = new UserModel({ firstName, lastName, email, password, role, profileImageUrl });
+    const newUser = new UserModel({ firstName, lastName, email: normalizedEmail, password, role, profileImageUrl });
     await newUser.save();
     
     const token = generateToken(newUser._id, newUser.role);
@@ -42,7 +43,8 @@ authRoutes.post('/users', async (req, res, next) => {
 authRoutes.post('/login', async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const user = await UserModel.findOne({ email });
+    const normalizedEmail = email ? email.toLowerCase().trim() : '';
+    const user = await UserModel.findOne({ email: normalizedEmail });
     
     if (!user || !(await user.matchPassword(password))) {
       return res.status(401).json({ message: "Invalid email or password" });
@@ -101,4 +103,62 @@ authRoutes.put('/password', verifyToken, async (req, res, next) => {
     next(err);
   }
 });
+
+// forgot password request (generates 6-digit code)
+authRoutes.post('/forgot-password', async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+    const user = await UserModel.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+      return res.status(404).json({ message: "User with this email does not exist" });
+    }
+    
+    // Generate 6-digit verification code
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetPasswordToken = resetCode;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour expiration
+    await user.save();
+    
+    console.log(`[PASSWORD RESET] Code for ${email} is: ${resetCode}`);
+    
+    res.status(200).json({ 
+      message: "Reset code generated. For easy testing, we also returned it in this response.", 
+      code: resetCode 
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// reset password using verification code
+authRoutes.post('/reset-password', async (req, res, next) => {
+  try {
+    const { email, code, newPassword } = req.body;
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ message: "Email, code, and new password are required" });
+    }
+    const user = await UserModel.findOne({ 
+      email: email.toLowerCase().trim(),
+      resetPasswordToken: code,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+    
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired verification code" });
+    }
+    
+    user.password = newPassword;
+    user.resetPasswordToken = '';
+    user.resetPasswordExpires = null;
+    await user.save();
+    
+    res.status(200).json({ message: "Password reset successfully. You can now login with your new password." });
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default authRoutes;
