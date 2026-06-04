@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { UserModel } from '../models/User.js';
 import { verifyToken } from '../middlewares/authMiddleware.js';
 import generateToken from '../utils/generateToken.js';
+import { sendEmail } from '../utils/sendEmail.js';
 export const authRoutes = exp.Router();
 // register new user
 authRoutes.post('/users', async (req, res, next) => {
@@ -104,7 +105,7 @@ authRoutes.put('/password', verifyToken, async (req, res, next) => {
   }
 });
 
-// forgot password request (generates 6-digit code)
+// forgot password request (generates 6-digit code and emails it)
 authRoutes.post('/forgot-password', async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -124,10 +125,43 @@ authRoutes.post('/forgot-password', async (req, res, next) => {
     
     console.log(`[PASSWORD RESET] Code for ${email} is: ${resetCode}`);
     
-    res.status(200).json({ 
-      message: "Reset code generated. For easy testing, we also returned it in this response.", 
-      code: resetCode 
-    });
+    const emailSubject = "StudyVault - Password Reset Verification Code";
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e8ed; border-radius: 10px; background-color: #f8fafc;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h2 style="color: #4f46e5; margin: 0;">StudyVault 📚🧪</h2>
+          <p style="color: #475569; font-size: 0.9rem;">Collaborative Academic Platform</p>
+        </div>
+        <div style="padding: 20px; background-color: #ffffff; border-radius: 8px; border: 1px solid rgba(15, 23, 42, 0.08); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);">
+          <h3 style="color: #0f172a; margin-top: 0;">Password Reset Request</h3>
+          <p style="color: #475569; line-height: 1.5;">Hello ${user.firstName},</p>
+          <p style="color: #475569; line-height: 1.5;">We received a request to reset your password for your StudyVault account. Please use the following 6-digit verification code to complete the reset process:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <span style="font-size: 2.2rem; font-weight: bold; letter-spacing: 6px; color: #4f46e5; background-color: #f1f5f9; padding: 12px 24px; border-radius: 8px; border: 1px solid rgba(79, 70, 229, 0.15);">${resetCode}</span>
+          </div>
+          <p style="color: #ef4444; font-size: 0.85rem; font-weight: 500;">This code will expire in 1 hour.</p>
+          <p style="color: #475569; line-height: 1.5; font-size: 0.9rem; margin-top: 20px;">If you did not request a password reset, you can safely ignore this email.</p>
+        </div>
+        <div style="text-align: center; margin-top: 20px; color: #64748b; font-size: 0.8rem;">
+          &copy; ${new Date().getFullYear()} StudyVault. All rights reserved.
+        </div>
+      </div>
+    `;
+
+    try {
+      const emailSent = await sendEmail(user.email, emailSubject, emailHtml);
+      if (emailSent) {
+        return res.status(200).json({ message: "Verification code sent to your email." });
+      } else {
+        // Fallback if SMTP env variables are missing
+        return res.status(200).json({ 
+          message: "SMTP keys missing in .env. Reset code returned in response for testing.", 
+          code: resetCode 
+        });
+      }
+    } catch (mailError) {
+      return res.status(500).json({ message: "Failed to send verification email. Please check server SMTP configuration." });
+    }
   } catch (err) {
     next(err);
   }
