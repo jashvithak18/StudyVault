@@ -1735,5 +1735,22 @@ select {
     grid-template-columns: 1fr !important;
     height: auto !important;
   }
+
+  /* AskVault & Whiteboard layouts for mobile */
+  .ask-vault-grid,
+  .active-room-layout {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    min-height: unset !important;
+  }
+}
+
+/* AskVault Grid Layout */
+.ask-vault-grid {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 20px;
+  height: calc(100vh - 190px);
+  min-height: 500px;
 }
 

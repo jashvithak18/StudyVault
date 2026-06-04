@@ -74,7 +74,7 @@ const getQuotaExhaustedMessage = (errorMsg = '') => {
 
     return `📊 **Daily AI quota reached**
 
-The free Gemini AI quota resets every day at **midnight US Pacific Time**.
+The free Gemini AI quota is currently exhausted for the day.
 
 ⏰ **Quota renews at:** ${istTime} IST
 ⌛ **Time remaining:** ~${timeLeftStr}
@@ -86,7 +86,7 @@ Until then, you can:
 
 The AI will be fully available again after renewal! 🚀`;
   } catch (_) {
-    return `📊 **Daily AI quota reached**\n\nThe free Gemini AI quota resets every day at **midnight US Pacific Time** (approximately **1:30 PM IST**).\n\nPlease try again after the reset. In the meantime, use the Notes Repository or Doubt Forum!`;
+    return `📊 **Daily AI quota reached**\n\nThe free Gemini AI quota is currently exhausted for the day.\n\nIt resets every day at approximately **1:30 PM IST**.\n\nPlease try again after the reset. In the meantime, use the Notes Repository or Doubt Forum!`;
   }
 };
 

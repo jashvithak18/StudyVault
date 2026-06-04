@@ -193,7 +193,7 @@ const AskVault = () => {
         <p className="subtitle">Powered by Google Gemini · Ask anything academic, or chat about your uploaded documents.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: '20px', height: 'calc(100vh - 190px)', minHeight: '500px' }}>
+      <div className="ask-vault-grid">
         {/* Left Side: Context Selector */}
         <div style={{
           backgroundColor: '#ffffff',
