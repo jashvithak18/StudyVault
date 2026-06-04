@@ -1,0 +1,41 @@
+
+### Greeting
+POST http://localhost:5000/user-api/ai/chat
+Cookie: token=<eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMGQ3NmRhYmFhYzI4OTg3NGJlZGIwYyIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzc5MjY4NjkxLCJleHAiOjE3ODE4NjA2OTF9.LMYOo2_jJSkheC-QiE6HEBV0X8AxbqGxT_X2H5w2HRM>
+Content-Type: application/json
+
+{
+  "message": "Hello! What can you help me with?"
+}
+
+### Help query
+POST http://localhost:5000/user-api/ai/chat
+Cookie: token=<eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMGQ3NmRhYmFhYzI4OTg3NGJlZGIwYyIsInJvbGUiOiJTVFVERU5UIiwiaWF0IjoxNzc5MjY4NjkxLCJleHAiOjE3ODE4NjA2OTF9.LMYOo2_jJSkheC-QiE6HEBV0X8AxbqGxT_X2H5w2HRM>
+Content-Type: application/json
+
+{
+  "message": "How do I use this platform? How to upload notes?"
+}
+
+###Subject question (no context)
+POST http://localhost:5000/user-api/ai/chat
+Cookie: token=<eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9>
+Content-Type: application/json
+
+{
+  "message": "Explain the concept of deadlock in operating systems."
+}
+
+
+
+###Chat with uploaded note context
+POST http://localhost:5000/user-api/ai/chat-with-note
+Cookie: token=<eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9>
+Content-Type: application/json
+
+{
+  "message": "Summarize the key concepts in this document.",
+  "noteId": "<NOTE_ID>"
+}
+
+

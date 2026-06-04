@@ -1,0 +1,36 @@
+
+###Get All Questions 
+GET http://localhost:5000/user-api/forum/questions
+Cookie: token=<eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9>
+
+###Create a New Question
+POST http://localhost:5000/user-api/forum/questions
+Cookie: token=<eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9>
+Content-Type: application/json
+
+{
+  "title": "What is the difference between a process and a thread?",
+  "content": "I understand that both processes and threads are units of execution, but I am confused about when to use which. Can someone explain with an example?"
+}
+
+### Get Answers for a Question
+GET http://localhost:5000/user-api/forum/questions/6a0ebd29c5d774df94b17b6b/answers
+Cookie: token=<eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9>
+
+###Upvote a Question
+POST http://localhost:5000/user-api/forum/questions/<QUESTION_ID>/vote
+Cookie: token=<TOKEN>
+Content-Type: application/json
+
+{
+  "type": "upvote"
+}
+
+### Downvote a Question
+POST http://localhost:5000/user-api/forum/questions/<QUESTION_ID>/vote
+Cookie: token=<TOKEN>
+Content-Type: application/json
+
+{
+  "type": "downvote"
+}

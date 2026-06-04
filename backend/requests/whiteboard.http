@@ -1,0 +1,9 @@
+
+GET http://localhost:5000/user-api/whiteboard/room/study-room-1/users
+Cookie: token=<TOKEN>
+
+###
+GET http://localhost:5000/user-api/whiteboard/room/cs101-revision/users
+Cookie: token=<TOKEN>
+
+
