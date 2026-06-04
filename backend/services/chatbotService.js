@@ -63,8 +63,11 @@ const getQuotaExhaustedMessage = (errorMsg = '') => {
       ? `${hoursLeft}h ${minutesLeft}m`
       : `${minutesLeft} minutes`;
 
+    const isDailyQuota = errorMsg.includes('exceeded your current quota') || errorMsg.includes('free_tier_requests');
+
     // Per-minute rate limit (short wait) vs daily quota (long wait)
-    if (retrySeconds && retrySeconds < 120) {
+    // Only show the short wait message if it's explicitly NOT a daily quota error
+    if (retrySeconds && retrySeconds < 120 && !isDailyQuota) {
       const waitSec = retrySeconds + 5;
       return `⏳ **Rate limit reached** — too many requests in a short time.\n\nPlease wait **${waitSec} seconds** and try again. The AI will be ready shortly!`;
     }
