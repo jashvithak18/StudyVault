@@ -16,7 +16,24 @@ authRoutes.post('/users', async (req, res, next) => {
     const newUser = new UserModel({ firstName, lastName, email, password, role, profileImageUrl });
     await newUser.save();
     
-    res.status(201).json({ message: "User registered successfully" });
+    const token = generateToken(newUser._id, newUser.role);
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    });
+    
+    res.status(201).json({ 
+      message: "User registered successfully",
+      token,
+      user: {
+        _id: newUser._id,
+        firstName: newUser.firstName,
+        email: newUser.email,
+        role: newUser.role
+      }
+    });
   } catch (err) {
     next(err);
   }
