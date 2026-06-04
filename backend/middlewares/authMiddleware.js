@@ -2,7 +2,10 @@ import jwt from 'jsonwebtoken'
 const { verify } = jwt
 //verify JWT token 
 export function verifyToken(req, res, next) {
-  const token = req.cookies?.token
+  let token = req.cookies?.token
+  if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
   console.log("Token in verification:", token)
   if (!token) {
     return res.status(401).json({ message: "Please login" })
