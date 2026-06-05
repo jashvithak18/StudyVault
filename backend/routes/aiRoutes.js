@@ -37,7 +37,14 @@ aiRoutes.post('/chat-with-note', verifyToken, async (req, res, next) => {
 });
 
 // general chat with optional file attachment
-aiRoutes.post('/chat', verifyToken, uploadMemory.single('file'), async (req, res, next) => {
+aiRoutes.post('/chat', verifyToken, (req, res, next) => {
+  uploadMemory.single('file')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ message: 'File upload error', error: err.message });
+    }
+    next();
+  });
+}, async (req, res, next) => {
   try {
     const { message, history } = req.body;
     
@@ -60,8 +67,12 @@ aiRoutes.post('/chat', verifyToken, uploadMemory.single('file'), async (req, res
     if (req.file) {
       const mimeType = req.file.mimetype;
       if (mimeType === 'application/pdf') {
-        const pdfData = await pdfParse(req.file.buffer);
-        attachment = { type: 'pdf', text: pdfData.text };
+        try {
+          const pdfData = await pdfParse(req.file.buffer);
+          attachment = { type: 'pdf', text: pdfData.text };
+        } catch (pdfErr) {
+          return res.status(400).json({ message: 'Could not parse the PDF file. It might be corrupted, encrypted, or empty.' });
+        }
       } else if (mimeType.startsWith('image/')) {
         const base64Img = req.file.buffer.toString('base64');
         attachment = { type: 'image', url: `data:${mimeType};base64,${base64Img}` };
@@ -75,7 +86,8 @@ aiRoutes.post('/chat', verifyToken, uploadMemory.single('file'), async (req, res
     const reply = await generateResponse(message || "Analyze this file.", null, parsedHistory, attachment);
     res.status(200).json({ message: 'Chat response', reply });
   } catch (err) {
-    next(err);
+    console.error("AI Route Error:", err);
+    res.status(500).json({ message: 'An unexpected server error occurred', error: err.message });
   }
 });
 
