@@ -1,40 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import { Send, Bot, Sparkles, HelpCircle, Trash2 } from 'lucide-react';
+import { Send, Bot, HelpCircle, Trash2, Paperclip, X } from 'lucide-react';
 
 const AskVault = () => {
   const { user } = useAuth();
-  const [notes, setNotes] = useState([]);
-  const [selectedNoteId, setSelectedNoteId] = useState('');
   const [messages, setMessages] = useState([
-    { sender: 'bot', text: 'Hello! I\'m **StudyVault AI**, powered by Groq Llama 3. 🎓\n\nI can help you with:\n- Answering academic questions across any subject\n- Summarizing and explaining your uploaded notes\n- Generating practice questions\n- Debugging code\n\nSelect a document from the left to ask questions about it, or just type anything to get started!' }
+    { sender: 'bot', text: 'Hello! I\'m **StudyVault AI**, powered by Groq Llama 3. 🎓\n\nI can help you with:\n- Answering academic questions across any subject\n- Summarizing and explaining your uploaded notes\n- Generating practice questions\n- Debugging code\n\nYou can also **attach images or PDFs** to analyze them! What can I help you with today?' }
   ]);
   const [input, setInput] = useState('');
+  const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [notesLoading, setNotesLoading] = useState(true);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const suggestedQuestions = [
-    'Summarize this document',
-    'What are the key concepts?',
-    'Generate 5 practice questions',
-    'Explain in simple terms',
+    'Explain quantum computing',
+    'What are the key concepts of OOP?',
+    'Generate 5 practice math questions',
+    'How do I write a good essay?',
   ];
-
-  useEffect(() => {
-    const fetchNotes = async () => {
-      try {
-        const res = await api.get('/user-api/notes');
-        setNotes(Array.isArray(res.data?.payload) ? res.data.payload : Array.isArray(res.data) ? res.data : []);
-      } catch (err) {
-        console.error('Failed to load notes', err);
-      } finally {
-        setNotesLoading(false);
-      }
-    };
-    fetchNotes();
-  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -42,22 +27,33 @@ const AskVault = () => {
 
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
-    if (!input.trim() || loading) return;
+    if ((!input.trim() && !file) || loading) return;
     const textToSend = input.trim();
+    const fileToSend = file;
     setInput('');
-    await submitQuery(textToSend);
+    setFile(null);
+    await submitQuery(textToSend, fileToSend);
   };
 
-  const submitQuery = async (queryText) => {
-    const userMessage = { sender: 'user', text: queryText };
+  const submitQuery = async (queryText, attachedFile = null) => {
+    const userMessage = { 
+      sender: 'user', 
+      text: queryText || (attachedFile ? `[Attached File: ${attachedFile.name}]` : '') 
+    };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setLoading(true);
+    
     try {
-      const res = await api.post('/user-api/ai/chat-with-note', {
-        message: queryText,
-        noteId: selectedNoteId || null,
-        history: messages // send full conversation history
+      const formData = new FormData();
+      if (queryText) formData.append('message', queryText);
+      formData.append('history', JSON.stringify(messages));
+      if (attachedFile) {
+        formData.append('file', attachedFile);
+      }
+
+      const res = await api.post('/user-api/ai/chat', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
       const reply = res.data.reply || res.data.payload?.reply || 'No response received.';
       setMessages((prev) => [...prev, { sender: 'bot', text: reply }]);
@@ -75,6 +71,12 @@ const AskVault = () => {
     setMessages([
       { sender: 'bot', text: 'Chat cleared! I\'m ready for your next question. 🎓' }
     ]);
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
   };
 
   // Simple markdown renderer for bold, code blocks, and bullet lists
@@ -184,70 +186,14 @@ const AskVault = () => {
     ? `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase() || 'U'
     : 'U';
 
-  const selectedNote = notes.find(n => n._id === selectedNoteId);
-
   return (
     <div className="ask-vault-page page-container">
       <div className="page-header" style={{ marginBottom: '16px' }}>
         <h1>AskVault AI Assistant</h1>
-        <p className="subtitle">Powered by Groq Llama 3 · Ask anything academic, or chat about your uploaded documents.</p>
+        <p className="subtitle">Powered by Groq Llama 3 · Ask anything academic, or chat about your documents.</p>
       </div>
 
-      <div className="ask-vault-grid">
-        {/* Left Side: Context Selector */}
-        <div style={{
-          backgroundColor: '#ffffff',
-          border: '1px solid var(--border-color)',
-          borderRadius: '8px',
-          padding: '16px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-          overflowY: 'auto'
-        }}>
-          <h2 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>Study Context</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.73rem', lineHeight: 1.4, marginBottom: '8px' }}>
-            Select a note to focus the AI on it. Leave unselected for general questions.
-          </p>
-
-          {notesLoading ? (
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', padding: '8px 0' }}>Loading notes...</div>
-          ) : notes.length === 0 ? (
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', padding: '8px 0' }}>No notes uploaded yet.</div>
-          ) : (
-            notes.map((note) => (
-              <button
-                key={note._id}
-                onClick={() => setSelectedNoteId(selectedNoteId === note._id ? '' : note._id)}
-                style={{
-                  textAlign: 'left',
-                  padding: '10px 12px',
-                  backgroundColor: selectedNoteId === note._id ? 'var(--accent-primary-glow)' : 'transparent',
-                  border: '1px solid',
-                  borderColor: selectedNoteId === note._id ? 'var(--accent-primary)' : 'var(--border-color)',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  overflow: 'hidden'
-                }}
-              >
-                <div style={{
-                  fontSize: '0.82rem',
-                  fontWeight: 600,
-                  color: selectedNoteId === note._id ? 'var(--accent-primary)' : 'var(--text-primary)',
-                  textOverflow: 'ellipsis',
-                  overflow: 'hidden',
-                  whiteSpace: 'nowrap'
-                }}>
-                  📄 {note.title}
-                </div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                  {note.subject || 'General'} {selectedNoteId === note._id ? '· active' : ''}
-                </div>
-              </button>
-            ))
-          )}
-        </div>
-
+      <div style={{ maxWidth: '900px', margin: '0 auto', width: '100%', display: 'flex', flexDirection: 'column', height: 'calc(100vh - 160px)' }}>
         {/* Right Side: Chat Panel */}
         <div style={{
           backgroundColor: '#ffffff',
@@ -255,6 +201,7 @@ const AskVault = () => {
           borderRadius: '8px',
           display: 'flex',
           flexDirection: 'column',
+          flex: 1,
           overflow: 'hidden'
         }}>
           {/* Top bar */}
@@ -275,7 +222,7 @@ const AskVault = () => {
                 {suggestedQuestions.map((qText, idx) => (
                   <button
                     key={idx}
-                    onClick={() => submitQuery(qText)}
+                    onClick={() => submitQuery(qText, null)}
                     disabled={loading}
                     style={{
                       fontSize: '0.72rem',
@@ -306,20 +253,6 @@ const AskVault = () => {
               <Trash2 size={15} />
             </button>
           </div>
-
-          {/* Selected note banner */}
-          {selectedNote && (
-            <div style={{
-              padding: '6px 16px',
-              backgroundColor: 'var(--accent-primary-glow)',
-              borderBottom: '1px solid var(--border-color)',
-              fontSize: '0.75rem',
-              color: 'var(--accent-primary)',
-              fontWeight: 600
-            }}>
-              📄 Context: {selectedNote.title} ({selectedNote.subject || 'General'})
-            </div>
-          )}
 
           {/* Chat thread */}
           <div style={{
@@ -401,50 +334,114 @@ const AskVault = () => {
           </div>
 
           {/* Input form */}
-          <form onSubmit={handleSendMessage} style={{
-            display: 'flex',
-            padding: '12px 14px',
+          <div style={{
             backgroundColor: 'var(--bg-primary)',
             borderTop: '1px solid var(--border-color)',
-            gap: '10px',
-            alignItems: 'flex-end',
+            display: 'flex',
+            flexDirection: 'column'
           }}>
-            <textarea
-              placeholder={selectedNoteId ? 'Ask AI about this document...' : 'Ask me anything academic...'}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage(null);
-                }
-              }}
-              disabled={loading}
-              rows={1}
-              style={{
-                flex: 1,
-                border: '1px solid var(--border-color)',
-                borderRadius: '6px',
-                padding: '10px 14px',
-                fontSize: '0.875rem',
-                resize: 'none',
-                fontFamily: 'var(--font-body)',
-                lineHeight: 1.5,
-                outline: 'none',
-                minHeight: '42px',
-                maxHeight: '120px',
-                overflowY: 'auto',
-              }}
-            />
-            <button
-              type="submit"
-              className="btn btn-primary"
-              style={{ padding: '0 16px', height: '42px', flexShrink: 0 }}
-              disabled={loading || !input.trim()}
-            >
-              <Send size={16} />
-            </button>
-          </form>
+            {/* File Preview Pill */}
+            {file && (
+              <div style={{ padding: '8px 14px 0', display: 'flex', alignItems: 'center' }}>
+                <div style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  gap: '6px', 
+                  backgroundColor: '#ffffff',
+                  border: '1px solid var(--accent-primary)',
+                  padding: '4px 10px',
+                  borderRadius: '20px',
+                  fontSize: '0.75rem',
+                  color: 'var(--accent-primary)',
+                  fontWeight: 600
+                }}>
+                  <Paperclip size={12} />
+                  <span style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {file.name}
+                  </span>
+                  <button 
+                    onClick={() => setFile(null)} 
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: 'var(--accent-primary)' }}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
+            <form onSubmit={handleSendMessage} style={{
+              display: 'flex',
+              padding: '12px 14px',
+              gap: '10px',
+              alignItems: 'flex-end',
+            }}>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                accept="image/*,.pdf,.txt" 
+                style={{ display: 'none' }} 
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                title="Attach Document or Image"
+                style={{ 
+                  background: 'none', 
+                  border: '1px solid var(--border-color)', 
+                  cursor: 'pointer', 
+                  color: 'var(--text-muted)', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  padding: '0', 
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '6px', 
+                  flexShrink: 0,
+                  backgroundColor: '#ffffff'
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.color = 'var(--accent-primary)'; e.currentTarget.style.borderColor = 'var(--accent-primary)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border-color)'; }}
+              >
+                <Paperclip size={18} />
+              </button>
+              <textarea
+                placeholder="Ask me anything academic... Attach an image or PDF for context!"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage(null);
+                  }
+                }}
+                disabled={loading}
+                rows={1}
+                style={{
+                  flex: 1,
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '6px',
+                  padding: '10px 14px',
+                  fontSize: '0.875rem',
+                  resize: 'none',
+                  fontFamily: 'var(--font-body)',
+                  lineHeight: 1.5,
+                  outline: 'none',
+                  minHeight: '42px',
+                  maxHeight: '120px',
+                  overflowY: 'auto',
+                }}
+              />
+              <button
+                type="submit"
+                className="btn btn-primary"
+                style={{ padding: '0 16px', height: '42px', flexShrink: 0 }}
+                disabled={loading || (!input.trim() && !file)}
+              >
+                <Send size={16} />
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </div>

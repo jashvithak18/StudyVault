@@ -22,11 +22,13 @@ Your personality:
 - Keep responses focused, accurate, and academic in tone
 - Use markdown formatting for better readability`;
 
-export const generateResponse = async (userMessage, noteContext = null, history = []) => {
+export const generateResponse = async (userMessage, noteContext = null, history = [], attachment = null) => {
   try {
     if (!groq) {
       return 'AI assistant is not configured yet. Please add your API key to the environment variables.';
     }
+
+    let activeModel = 'llama-3.3-70b-versatile'; // Default text model
 
     // Build history for Groq (OpenAI-style: { role: 'system'|'user'|'assistant', content: '...' })
     const messages = [
@@ -46,7 +48,7 @@ export const generateResponse = async (userMessage, noteContext = null, history 
 
     let promptContent = userMessage;
 
-    // If a note is selected, prepend document context only if history is fresh
+    // If a repository note is selected, prepend its metadata
     if (noteContext && history.length <= 1) {
       promptContent = `I am studying a document called "${noteContext.title}" (Subject: ${noteContext.subject || 'General'}).
 ${noteContext.description ? `Description: ${noteContext.description}` : ''}
@@ -55,12 +57,38 @@ ${noteContext.aiSummary ? `Document Summary: ${noteContext.aiSummary}` : '(Note:
 My question about this topic: ${userMessage}`;
     }
 
+    // Handle temporary file attachment
+    let userMessageObject = { role: 'user', content: promptContent };
+
+    if (attachment) {
+      if (attachment.type === 'pdf' || attachment.type === 'text') {
+        promptContent = `Below is the text of a document I attached. Please answer my question based on it.
+        
+--- DOCUMENT CONTENT ---
+${attachment.text}
+--- END OF DOCUMENT ---
+
+My question: ${userMessage}`;
+        userMessageObject = { role: 'user', content: promptContent };
+      } else if (attachment.type === 'image') {
+        // Switch to vision model
+        activeModel = 'llama-3.2-90b-vision-preview';
+        userMessageObject = {
+          role: 'user',
+          content: [
+            { type: 'text', text: userMessage || 'Analyze this image.' },
+            { type: 'image_url', image_url: { url: attachment.url } }
+          ]
+        };
+      }
+    }
+
     // Add the current user message
-    messages.push({ role: 'user', content: promptContent });
+    messages.push(userMessageObject);
 
     const chatCompletion = await groq.chat.completions.create({
       messages: messages,
-      model: 'llama-3.3-70b-versatile',
+      model: activeModel,
       temperature: 0.7,
       max_tokens: 2048,
     });
