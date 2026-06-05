@@ -1,6 +1,8 @@
 import exp from 'express';
 import multer from 'multer';
-import pdfParse from 'pdf-parse';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pdfParse = require('pdf-parse');
 import { NoteModel } from '../models/Note.js';
 import { generateResponse } from '../services/chatbotService.js';
 import { verifyToken } from '../middlewares/authMiddleware.js';
