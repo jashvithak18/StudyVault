@@ -71,7 +71,7 @@ aiRoutes.post('/chat', verifyToken, (req, res, next) => {
           const pdfData = await pdfParse(req.file.buffer);
           attachment = { type: 'pdf', text: pdfData.text };
         } catch (pdfErr) {
-          return res.status(400).json({ message: 'Could not parse the PDF file. It might be corrupted, encrypted, or empty.' });
+          return res.status(400).json({ message: `Could not parse the PDF file. Error: ${pdfErr.message || 'Unknown'}` });
         }
       } else if (mimeType.startsWith('image/')) {
         const base64Img = req.file.buffer.toString('base64');
