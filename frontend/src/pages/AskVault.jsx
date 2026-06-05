@@ -8,7 +8,7 @@ const AskVault = () => {
   const [notes, setNotes] = useState([]);
   const [selectedNoteId, setSelectedNoteId] = useState('');
   const [messages, setMessages] = useState([
-    { sender: 'bot', text: 'Hello! I\'m **StudyVault AI**, powered by Google Gemini. 🎓\n\nI can help you with:\n- Answering academic questions across any subject\n- Summarizing and explaining your uploaded notes\n- Generating practice questions\n- Debugging code\n\nSelect a document from the left to ask questions about it, or just type anything to get started!' }
+    { sender: 'bot', text: 'Hello! I\'m **StudyVault AI**, powered by Groq Llama 3. 🎓\n\nI can help you with:\n- Answering academic questions across any subject\n- Summarizing and explaining your uploaded notes\n- Generating practice questions\n- Debugging code\n\nSelect a document from the left to ask questions about it, or just type anything to get started!' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -190,7 +190,7 @@ const AskVault = () => {
     <div className="ask-vault-page page-container">
       <div className="page-header" style={{ marginBottom: '16px' }}>
         <h1>AskVault AI Assistant</h1>
-        <p className="subtitle">Powered by Google Gemini · Ask anything academic, or chat about your uploaded documents.</p>
+        <p className="subtitle">Powered by Groq Llama 3 · Ask anything academic, or chat about your uploaded documents.</p>
       </div>
 
       <div className="ask-vault-grid">
