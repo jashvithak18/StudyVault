@@ -56,9 +56,10 @@ const AskVault = () => {
       const reply = res.data.reply || res.data.payload?.reply || 'No response received.';
       setMessages((prev) => [...prev, { sender: 'bot', text: reply }]);
     } catch (err) {
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || err.message || 'I encountered an error.';
       setMessages((prev) => [
         ...prev,
-        { sender: 'bot', text: '⚠️ I encountered an error. Please try again.' }
+        { sender: 'bot', text: `⚠️ **Error:** ${errorMsg}\n\nPlease try again or check your file.` }
       ]);
     } finally {
       setLoading(false);
