@@ -52,9 +52,7 @@ const AskVault = () => {
         formData.append('file', attachedFile);
       }
 
-      const res = await api.post('/user-api/ai/chat', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      const res = await api.post('/user-api/ai/chat', formData);
       const reply = res.data.reply || res.data.payload?.reply || 'No response received.';
       setMessages((prev) => [...prev, { sender: 'bot', text: reply }]);
     } catch (err) {
