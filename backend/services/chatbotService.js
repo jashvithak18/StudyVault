@@ -50,9 +50,9 @@ export const generateResponse = async (userMessage, noteContext = null, history 
     if (noteContext && history.length <= 1) {
       promptContent = `I am studying a document called "${noteContext.title}" (Subject: ${noteContext.subject || 'General'}).
 ${noteContext.description ? `Description: ${noteContext.description}` : ''}
-${noteContext.aiSummary ? `Summary context: ${noteContext.aiSummary}` : ''}
+${noteContext.aiSummary ? `Document Summary: ${noteContext.aiSummary}` : '(Note: The full document text is not available right now, so please answer based on your general knowledge of this topic and the document title.)'}
 
-My question about this document: ${userMessage}`;
+My question about this topic: ${userMessage}`;
     }
 
     // Add the current user message

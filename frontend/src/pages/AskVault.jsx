@@ -393,7 +393,7 @@ const AskVault = () => {
                   fontSize: '0.875rem',
                 }}>
                   <div className="loader-spinner small" style={{ width: '14px', height: '14px' }} />
-                  <span>Gemini is thinking...</span>
+                  <span>Assistant is thinking...</span>
                 </div>
               </div>
             )}
