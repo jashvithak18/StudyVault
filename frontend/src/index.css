@@ -1743,6 +1743,32 @@ select {
     height: auto !important;
     min-height: unset !important;
   }
+
+  /* Floating Chatbot Widget mobile overrides */
+  .chatbot-floating-container {
+    bottom: 90px;
+    right: 16px;
+  }
+  .chatbot-window {
+    width: calc(100vw - 32px);
+    max-width: 340px;
+    height: 380px;
+  }
+
+  /* Whiteboard controls responsiveness */
+  .whiteboard-controls {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  .whiteboard-controls .control-group {
+    justify-content: space-between !important;
+    width: 100% !important;
+  }
+  .whiteboard-controls button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
 }
 
 /* AskVault Grid Layout */

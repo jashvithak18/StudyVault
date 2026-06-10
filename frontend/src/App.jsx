@@ -9,9 +9,19 @@ import Chatbot from './components/Chatbot';
 
 import { useState } from 'react';
 
+import { useLocation } from 'react-router-dom';
+import Loader from './components/Loader';
+
 const AppLayout = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+
+  if (loading) {
+    return <Loader message="Verifying session..." />;
+  }
+
+  const showChatbot = user && location.pathname !== '/ask' && location.pathname !== '/whiteboard';
 
   return (
     <div className={`app-container ${user ? 'authenticated' : 'unauthenticated'}`}>
@@ -30,7 +40,7 @@ const AppLayout = () => {
           </main>
         </div>
       </div>
-      {user && <Chatbot />}
+      {showChatbot && <Chatbot />}
     </div>
   );
 };

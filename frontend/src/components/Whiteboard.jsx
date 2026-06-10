@@ -8,25 +8,61 @@ const Whiteboard = ({ roomId }) => {
   const [color, setColor] = useState('#6366f1');
   const [width, setWidth] = useState(5);
   const { socket } = useSocket();
+  const colorRef = useRef(color);
+  const widthRef = useRef(width);
+
   useEffect(() => {
-    const canvas = canvasRef.current;
-    canvas.width = canvas.parentElement.offsetWidth * 2;
-    canvas.height = 500 * 2;
-    canvas.style.width = '100%';
-    canvas.style.height = '500px';
-    const context = canvas.getContext('2d');
-    context.scale(2, 2);
-    context.lineCap = 'round';
-    context.strokeStyle = color;
-    context.lineWidth = width;
-    contextRef.current = context;
-  }, []);
-  useEffect(() => {
+    colorRef.current = color;
+    widthRef.current = width;
     if (contextRef.current) {
       contextRef.current.strokeStyle = color;
       contextRef.current.lineWidth = width;
     }
   }, [color, width]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !canvas.parentElement) return;
+
+    const context = canvas.getContext('2d');
+    contextRef.current = context;
+
+    const handleResize = () => {
+      const isMobile = window.innerWidth <= 768;
+      const height = isMobile ? 350 : 500;
+      const parentWidth = canvas.parentElement.offsetWidth;
+
+      // Save current content if canvas has been initialized
+      let tempCanvas = null;
+      if (canvas.width > 0 && canvas.height > 0) {
+        tempCanvas = document.createElement('canvas');
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.drawImage(canvas, 0, 0);
+      }
+
+      canvas.width = parentWidth * 2;
+      canvas.height = height * 2;
+      canvas.style.width = '100%';
+      canvas.style.height = `${height}px`;
+
+      // Reset context properties as changing canvas width/height resets them
+      context.scale(2, 2);
+      context.lineCap = 'round';
+      context.strokeStyle = colorRef.current;
+      context.lineWidth = widthRef.current;
+
+      // Restore content
+      if (tempCanvas) {
+        context.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, 0, 0, parentWidth, height);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   useEffect(() => {
     if (!socket) return;
     const handleStrokeReceived = (stroke) => {
@@ -56,8 +92,10 @@ const Whiteboard = ({ roomId }) => {
   const getCoordinates = (e) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const clientX = e.touches && e.touches.length > 0 ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches && e.touches.length > 0 ? e.touches[0].clientY : e.clientY;
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
     return { x, y };
   };
  const startDrawing = (e) => {
@@ -131,6 +169,11 @@ const Whiteboard = ({ roomId }) => {
           onMouseMove={draw}
           onMouseUp={stopDrawing}
           onMouseLeave={stopDrawing}
+          onTouchStart={startDrawing}
+          onTouchMove={draw}
+          onTouchEnd={stopDrawing}
+          onTouchCancel={stopDrawing}
+          style={{ touchAction: 'none' }}
         />
       </div>
     </div>
